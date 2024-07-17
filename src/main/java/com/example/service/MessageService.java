@@ -56,6 +56,18 @@ public class MessageService {
 
 
     //update message by id
+    public Message updateMessage(int messageId, Message message){
+        Message updatedMessage = messageRepository.getMessageById(messageId);
+
+        if(updatedMessage!=null&&updatedMessage.getMessageText().length()<=255){
+            updatedMessage.setMessageText(message.getMessageText());
+            return updatedMessage;
+        }
+        else{
+            return null;
+        }
+        
+    }
     //delete message by id
     public void deleteMessage(int messageId){
         messageRepository.deleteById(messageId);

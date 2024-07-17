@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.entity.Account;
@@ -20,7 +21,7 @@ import com.example.service.MessageService;
  * refer to prior mini-project labs and lecture materials for guidance on how a controller may be built.
  */
 
- @RestController
+@RestController
 public class SocialMediaController {
 
     MessageService messageService;
@@ -37,21 +38,32 @@ public class SocialMediaController {
         return accountService.creatAccount(account);
     }
 
+    //create user
+    public ResponseEntity createUser(@RequestBody Account account) {
+        if(accountService.creatAccount(account) != null&&account.getAccountId()!=null){
+            return ResponseEntity.status(200).body(accountService.creatAccount(account));
+        }else{
+            //409 duplicate user
+            return ResponseEntity.status(409).body("duplicate username");
+        }
+    }
+
     // login
     @PostMapping(value="/login")
     public Account login(@RequestBody Account account){
-        return account;
+        
+        return accountService.login(account.getUsername(),account.getPassword());
     }
 
     //create message
     @PostMapping(value="/messages")
-    public Message postMessage(@RequestBody Message message) /*throws InvalidMessageException*/{
-        if(messageService.createMessage(message) != null){
-            return messageService.createMessage(message);
+    public ResponseEntity postMessage(@RequestBody Message message) /*throws InvalidMessageException*/{
+        if(messageService.createMessage(message) != null&&message.getMessageText().length()<255&&message.getMessageText()!=""){
+            return ResponseEntity.status(200).body(messageService.createMessage(message));
         }else{
             // throw new InvalidMessageException();
             //return 400 for improper message
-            return null;
+            return ResponseEntity.status(400).body("invalid message");
         }
         
     }
@@ -62,38 +74,42 @@ public class SocialMediaController {
         return messageService.getAllMessages();
     }
 
+    //get message by message id
     @GetMapping("/messages/{messageId}")
     public Message getMessageById(@PathVariable int messageId){
         return messageService.getMessageByIdService(messageId);
     }
 
+    //delete message by message id
     @DeleteMapping("/messages/{messageId}")
     public void deleteMessageById(@PathVariable int messageId){
         messageService.deleteMessage(messageId);
         //need to return number of rows affected
     }
 
+    //update message by message id
     @PatchMapping("/messages/{messageId}")
-    public Message updateMessageByMessageId(@PathVariable int id){
-        Message message = new Message();
-        return message;
+    public ResponseEntity updateMessageByMessageId(@PathVariable int messageId, @RequestBody Message message){
+        Message updatedMessage = messageService.updateMessage(messageId,message);
+        if(updatedMessage==null||updatedMessage.getMessageText().length()>=255||updatedMessage.getMessageText()==""){
+            //status 400
+            return ResponseEntity.status(400).body("400");
+        }
+        else{
+            //good
+            
+            return ResponseEntity.status(200).body(updatedMessage);
+        }
     }
 
+    //get messages by account id
     @GetMapping("/accounts/{accountId}/messages")
     public List<Message> getAllMessagesForUser(@PathVariable int accountId){
         
         return messageService.getMessagesForUser(accountId);
     }
 
-    //create user
-    public Account createUser(@RequestBody Account account) {
-        if(accountService.creatAccount(account) != null){
-            return accountService.creatAccount(account);
-        }else{
-            //409 duplicate user
-            return null;
-        }
-    }
+
 
 }
 

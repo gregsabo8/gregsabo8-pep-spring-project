@@ -23,7 +23,7 @@ public class AccountService {
     //create account
         
     public Account creatAccount(Account account){
-        if(accountRepository.save(account) != null){
+        if(accountRepository.save(account) != null&&account.getAccountId()!=0){
             return accountRepository.save(account);
         }
         else{
@@ -32,4 +32,7 @@ public class AccountService {
         
     }
     //login
+    public Account login(String username, String password){
+        return accountRepository.login(username,password);
+    }
 }
