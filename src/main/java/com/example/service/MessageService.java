@@ -45,7 +45,7 @@ public class MessageService {
         }else{
             return null;
         }
-        
+        //use account.findAll
     }
 
     //get messages for user
@@ -57,9 +57,10 @@ public class MessageService {
 
     //update message by id
     public Message updateMessage(int messageId, Message message){
+        
         Message updatedMessage = messageRepository.getMessageById(messageId);
 
-        if(updatedMessage!=null&&updatedMessage.getMessageText().length()<=255){
+        if(updatedMessage!=null&&updatedMessage.getMessageText().length()<255){
             updatedMessage.setMessageText(message.getMessageText());
             return updatedMessage;
         }
@@ -69,7 +70,7 @@ public class MessageService {
         
     }
     //delete message by id
-    public void deleteMessage(int messageId){
-        messageRepository.deleteById(messageId);
+    public int deleteMessage(int messageId){
+        return messageRepository.deleteById(messageId);
     }
 }

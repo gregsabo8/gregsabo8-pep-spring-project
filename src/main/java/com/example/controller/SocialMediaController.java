@@ -13,6 +13,9 @@ import com.example.entity.Message;
 import com.example.exception.InvalidMessageException;
 import com.example.service.AccountService;
 import com.example.service.MessageService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * TODO: You will need to write your own endpoints and handlers for your controller using Spring. The endpoints you will need can be
@@ -50,9 +53,21 @@ public class SocialMediaController {
 
     // login
     @PostMapping(value="/login")
-    public Account login(@RequestBody Account account){
-        
-        return accountService.login(account.getUsername(),account.getPassword());
+    public ResponseEntity login(@RequestBody Account account) throws JsonMappingException, JsonProcessingException{
+        //object mapper convert json to data objects or the other way around
+        // ObjectMapper mapper = new ObjectMapper();
+        // Account user = mapper.readValue(Account.class);
+        // Account accounts = accountService.login();
+
+
+        if(accountService.login(account.getAccountId(),account.getUsername(),account.getPassword())!=null){
+        //account.getUsername = user entry
+        return ResponseEntity.status(200).body(account);
+        }
+        else{
+            return ResponseEntity.status(401).body("invalid username/pass");
+        }
+        //401
     }
 
     //create message
@@ -61,8 +76,6 @@ public class SocialMediaController {
         if(messageService.createMessage(message) != null&&message.getMessageText().length()<255&&message.getMessageText()!=""){
             return ResponseEntity.status(200).body(messageService.createMessage(message));
         }else{
-            // throw new InvalidMessageException();
-            //return 400 for improper message
             return ResponseEntity.status(400).body("invalid message");
         }
         
@@ -82,8 +95,15 @@ public class SocialMediaController {
 
     //delete message by message id
     @DeleteMapping("/messages/{messageId}")
-    public void deleteMessageById(@PathVariable int messageId){
-        messageService.deleteMessage(messageId);
+    public ResponseEntity deleteMessageById(@PathVariable int messageId){
+        if(messageService.deleteMessage(messageId)==0){
+            return ResponseEntity.status(200).body("");
+            
+        }else{
+            //the message is not being modified
+            return ResponseEntity.status(200).body(messageService.deleteMessage(messageId));
+        }
+        
         //need to return number of rows affected
     }
 

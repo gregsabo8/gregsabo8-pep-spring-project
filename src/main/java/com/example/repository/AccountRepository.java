@@ -10,8 +10,8 @@ import com.example.entity.Account;
 
 public interface AccountRepository extends JpaRepository<Account, Long>{
 
-    @Query("FROM Account WHERE username=:username AND password=:password")
-    public Account login(@Param("username") String username, @Param("password") String password);
+    @Query("FROM Account WHERE accountId=:accountId AND username=:username AND password=:password")
+    public Account login(@Param("accountId") int accountId, @Param("username") String username, @Param("password") String password);
 
     
 }
