@@ -2,6 +2,7 @@ package com.example.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 
 @RestController
+//@RequestMapping
 public class SocialMediaController {
 
     MessageService messageService;
@@ -37,43 +39,33 @@ public class SocialMediaController {
 
     //create new account
     @PostMapping(value = "/register")
-    public Account registerAccount(@RequestBody Account account){
-        return accountService.creatAccount(account);
-    }
-
-    //create user
-    public ResponseEntity createUser(@RequestBody Account account) {
-        if(accountService.creatAccount(account) != null&&account.getAccountId()!=null){
-            return ResponseEntity.status(200).body(accountService.creatAccount(account));
+    public ResponseEntity registerAccount(@RequestBody Account account){    
+        if(accountService.creatAccount(account)==null){
+            return ResponseEntity.status(409).body("");
         }else{
-            //409 duplicate user
-            return ResponseEntity.status(409).body("duplicate username");
+            return ResponseEntity.status(200).body(accountService.creatAccount(account));
         }
     }
+
 
     // login
     @PostMapping(value="/login")
     public ResponseEntity login(@RequestBody Account account) throws JsonMappingException, JsonProcessingException{
-        //object mapper convert json to data objects or the other way around
-        // ObjectMapper mapper = new ObjectMapper();
-        // Account user = mapper.readValue(Account.class);
-        // Account accounts = accountService.login();
-
-
-        if(accountService.login(account.getAccountId(),account.getUsername(),account.getPassword())!=null){
-        //account.getUsername = user entry
-        return ResponseEntity.status(200).body(account);
-        }
-        else{
+        Account userLoggedIn = accountService.login(account);
+        if(userLoggedIn==null){
             return ResponseEntity.status(401).body("invalid username/pass");
         }
-        //401
+        else{
+            return ResponseEntity.status(200).body(userLoggedIn);
+        }
     }
 
     //create message
     @PostMapping(value="/messages")
-    public ResponseEntity postMessage(@RequestBody Message message) /*throws InvalidMessageException*/{
-        if(messageService.createMessage(message) != null&&message.getMessageText().length()<255&&message.getMessageText()!=""){
+    public ResponseEntity postMessage(@RequestBody Message message) {
+        //todo 3
+        //the message needs a accountID
+        if(messageService.createMessage(message) != null&&message.getMessageText()!=""){
             return ResponseEntity.status(200).body(messageService.createMessage(message));
         }else{
             return ResponseEntity.status(400).body("invalid message");
@@ -100,36 +92,28 @@ public class SocialMediaController {
             return ResponseEntity.status(200).body("");
             
         }else{
-            //the message is not being modified
-            return ResponseEntity.status(200).body(messageService.deleteMessage(messageId));
+            return ResponseEntity.status(200).body(1);
         }
         
-        //need to return number of rows affected
     }
 
     //update message by message id
     @PatchMapping("/messages/{messageId}")
     public ResponseEntity updateMessageByMessageId(@PathVariable int messageId, @RequestBody Message message){
-        Message updatedMessage = messageService.updateMessage(messageId,message);
-        if(updatedMessage==null||updatedMessage.getMessageText().length()>=255||updatedMessage.getMessageText()==""){
-            //status 400
+        Message updatedMessage = messageService.getMessageByIdService(messageId);
+        if(updatedMessage==null||message.getMessageText()==""||message.getMessageText().length()>255){
             return ResponseEntity.status(400).body("400");
         }
         else{
-            //good
-            
-            return ResponseEntity.status(200).body(updatedMessage);
+            return ResponseEntity.status(200).body(1);
         }
     }
 
     //get messages by account id
     @GetMapping("/accounts/{accountId}/messages")
     public List<Message> getAllMessagesForUser(@PathVariable int accountId){
-        
         return messageService.getMessagesForUser(accountId);
     }
-
-
 
 }
 

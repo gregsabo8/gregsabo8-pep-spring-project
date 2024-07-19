@@ -17,10 +17,13 @@ import com.example.repository.MessageRepository;
 @Transactional(rollbackFor = InvalidMessageException.class)
 @Service
 public class MessageService {
+    AccountRepository accountRepository;
     MessageRepository messageRepository;
     @Autowired
-    public MessageService(MessageRepository messageRepository){
+    public MessageService(AccountRepository accountRepository,MessageRepository messageRepository){
+        this.accountRepository = accountRepository;
         this.messageRepository = messageRepository;
+
     }
     //get all messages
     public List<Message> getAllMessages() {
@@ -29,8 +32,6 @@ public class MessageService {
 
     //get message by id
     public Message getMessageByIdService(int messageId) {
-        // long lid = (long) message_id;
-        // Optional<Message> opMessage=messageRepository.findById(lid);
         if(messageRepository.getMessageById(messageId) != null){
             return messageRepository.getMessageById(messageId);
         }else{
@@ -40,11 +41,17 @@ public class MessageService {
 
     //create message
     public Message createMessage(Message message){
-        if(message.getMessageText().length()<255&&message.getMessageText()!=""){
-            return messageRepository.save(message);
-        }else{
+        if(message.getMessageText().length()>255) return null;
+        List<Message> getAllMessagesByAccountId = messageRepository.findAll();
+        boolean isUserFound = false;
+        for(Message m : getAllMessagesByAccountId){
+            if(m.getPostedBy().compareTo(message.getPostedBy())==0) isUserFound = true;
+        }
+        if(!isUserFound){
             return null;
         }
+        Message messageCreated = messageRepository.save(message);
+        return messageCreated;
         //use account.findAll
     }
 
@@ -54,13 +61,12 @@ public class MessageService {
         
     }
 
-
     //update message by id
     public Message updateMessage(int messageId, Message message){
         
         Message updatedMessage = messageRepository.getMessageById(messageId);
 
-        if(updatedMessage!=null&&updatedMessage.getMessageText().length()<255){
+        if(updatedMessage!=null&&updatedMessage.getMessageText().length()>255&&updatedMessage.getMessageText()!=""){
             updatedMessage.setMessageText(message.getMessageText());
             return updatedMessage;
         }
